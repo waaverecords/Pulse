@@ -5,5 +5,5 @@ namespace Pulse.Commands;
 public abstract class Command
 {
     public abstract Regex Pattern { get; }
-    public abstract Task Execute();
+    public abstract Task Execute(GroupCollection groups);
 }

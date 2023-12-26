@@ -18,7 +18,7 @@ public class QuitCommand : Command
         _client = client;
     }
 
-    public override async Task Execute()
+    public override async Task Execute(GroupCollection groups)
     {
         await _writer.WriteLineAsync("221 Closing connection");
         _client.Close();

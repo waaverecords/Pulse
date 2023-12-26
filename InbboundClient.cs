@@ -43,6 +43,8 @@ public class InboundClient
                 .Where(t => t.Namespace == commandNamespace && baseType.IsAssignableFrom(t) && t != baseType)
                 .ToList();
 
+            var commandRecognized = false;
+
             foreach (var derivedType in derivedTypes)
             {
                 // TODO: move all Pattern properties to a function which returns the proper command type
@@ -50,28 +52,16 @@ public class InboundClient
 
                 var command = _serviceProvider.GetService(derivedType) as Command;
 
-                if (command.Pattern.IsMatch(message))
+                if (command.Pattern.Match(message) is { Success: true, Groups: { Count: >=1 } groups })
                 {
-                    await command.Execute();
+                    commandRecognized = true;
+                    await command.Execute(groups);
                     break;
                 }
             }
 
-            // switch (message)
-            // {
-            //     case string s when EHLO_reg.Match(message) is { Success: true, Groups: { Count: >= 2 } groups}:
-            //         var response = new List<string>
-            //         {
-            //             $"250-{Settings.Domain} Hello {groups[1]}",
-            //             $"250-SIZE {Settings.Size}"
-            //         };
-            //         await writer.WriteLineAsync(string.Join("\n\r", response));
-            //     break;
-
-            //     default:
-            //         await writer.WriteLineAsync("500 Syntax error, command unrecognized");
-            //     break;
-            // }
+            if (!commandRecognized)
+                await _writer.WriteLineAsync("500 Syntax error, command unrecognized");
         }
     }
 }

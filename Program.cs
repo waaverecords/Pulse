@@ -16,6 +16,9 @@ var services = new ServiceCollection()
     .AddScoped<StreamWriterAccessor>()
     .AddScoped<StreamWriter>(x => x.GetRequiredService<StreamWriterAccessor>().Writer)
 
+    .AddScoped<ContextAccessor>()
+    .AddScoped<Context>(x => x.GetRequiredService<ContextAccessor>().Context)
+
     .AddScoped<InboundClient>();
 
 var commandNamespace = typeof(Pulse.Commands.Command).Namespace;
@@ -48,6 +51,9 @@ while (true)
 
         var writerAccessor = scope.ServiceProvider.GetRequiredService<StreamWriterAccessor>();
         writerAccessor.Writer = writer;
+
+        var contextAccessor = scope.ServiceProvider.GetRequiredService<ContextAccessor>();
+        contextAccessor.Context = new Context();
 
         var inboundClient = scope.ServiceProvider.GetRequiredService<InboundClient>();
         await inboundClient.Run();
